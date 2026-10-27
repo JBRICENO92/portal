@@ -1,0 +1,24 @@
+:80 {
+    request_body {
+        max_size 1GB
+    }
+
+    handle_path /pdf/* {
+        reverse_proxy 127.0.0.1:5001 {
+            header_up X-Forwarded-Prefix /pdf
+        }
+    }
+
+    handle_path /mir/* {
+        reverse_proxy 127.0.0.1:5002 {
+            header_up X-Forwarded-Prefix /mir
+            flush_interval -1
+        }
+    }
+
+    handle {
+        root * /var/www/portal
+        file_server
+        try_files {path} /index.html
+    }
+}

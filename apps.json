@@ -1,0 +1,22 @@
+[
+  {
+    "id": "pdfeditor",
+    "nombre": "PDF Editor",
+    "descripcion": "Unir PDFs por rangos, cortar documentos y convertir imágenes a PDF de forma instantánea.",
+    "ruta": "/pdf/",
+    "badge": "Activo",
+    "icono": "📄",
+    "puerto": 5001,
+    "health": "/pdf/health"
+  },
+  {
+    "id": "mir",
+    "nombre": "Manuales MIR",
+    "descripcion": "Descarga de asignaturas completas del curso MIR con renderizado en lotes y barra de progreso.",
+    "ruta": "/mir/",
+    "badge": "En preparación",
+    "icono": "📚",
+    "puerto": 5002,
+    "health": "/mir/health"
+  }
+]
