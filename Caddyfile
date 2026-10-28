@@ -1,4 +1,6 @@
-:80 {
+https://192.168.1.86, :443 {
+    tls internal
+
     request_body {
         max_size 1GB
     }
@@ -6,12 +8,14 @@
     handle_path /pdf/* {
         reverse_proxy 127.0.0.1:5001 {
             header_up X-Forwarded-Prefix /pdf
+            header_up X-Forwarded-Proto https
         }
     }
 
     handle_path /mir/* {
         reverse_proxy 127.0.0.1:5002 {
             header_up X-Forwarded-Prefix /mir
+            header_up X-Forwarded-Proto https
             flush_interval -1
         }
     }
