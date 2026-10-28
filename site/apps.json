@@ -14,7 +14,7 @@
     "nombre": "Manuales MIR",
     "descripcion": "Descarga de asignaturas completas del curso MIR con renderizado en lotes y barra de progreso.",
     "ruta": "/mir/",
-    "badge": "En preparación",
+    "badge": "Activo",
     "icono": "📚",
     "puerto": 5002,
     "health": "/mir/health"
