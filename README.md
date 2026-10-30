@@ -1,23 +1,24 @@
-# Portal Central & Reverse Proxy 🌐⚡
+# Central Portal & Reverse Proxy 🌐⚡
 
-Portal de bienvenida y servidor reverse proxy basado en **Caddy v2.11** para unificar y aislar aplicaciones locales (como PDFEditor o MIR) en una Raspberry Pi o servidor Linux doméstico.
-
----
-
-## 🚀 Características
-
-- **Landing Page Moderna:** Interfaz con tema oscuro, micro-animaciones y tarjetas dinámicas generadas desde `apps.json`.
-- **Monitoreo en Tiempo Real:** Verifica periódicamente el estado (`/health`) de cada servicio y muestra un badge interactivo (🟢 *En línea* / 🔴 *Fuera de línea*).
-- **Reverse Proxy Unificado:** Atiende todas las peticiones en el puerto **443 (HTTPS)** y las redirige internamente a servicios aislados en `127.0.0.1:<puerto>`.
-- **Redirección HTTP → HTTPS:** Convierte automáticamente cualquier petición al puerto 80 en conexión segura HTTPS (código 308).
-- **Límite de Subida Amplio:** Configurado con `max_size 1GB` para permitir transferencia de archivos pesados sin restricciones.
+Landing dashboard and reverse proxy server based on **Caddy v2** designed to unify, secure, and route local web applications (such as PDFEditor and MIR) on a Raspberry Pi or local Linux server.
 
 ---
 
-## 🛠️ Instalación y Configuración desde Cero
+## 🚀 Key Features
 
-### Opción Rápida (Script automatizado)
-En una Raspberry Pi o máquina Debian/Ubuntu recién instalada:
+- **Modern Dashboard UI:** Dark obsidian theme, smooth micro-animations, and dynamic service cards populated from `apps.json`.
+- **Real-Time Health Monitoring:** Automatically queries each backend service endpoint (`/health`) and displays dynamic status indicators (🟢 *Online* / 🔴 *Offline*).
+- **Unified Reverse Proxy:** Terminates all external traffic on port **443 (HTTPS)** with `tls internal`, securely proxying requests to loopback backends on `127.0.0.1:<port>`.
+- **Automatic HTTPS Redirection:** Seamlessly upgrades standard HTTP port 80 traffic to HTTPS.
+- **High Upload Limit:** Configured with `max_size 1GB` to support large file uploads without gateway timeouts or proxy body truncation.
+
+---
+
+## 🛠️ Installation & Setup from Scratch
+
+### Quick Setup (Automated Script)
+On a fresh Raspberry Pi OS (Debian 12 Bookworm) or Ubuntu machine:
+
 ```bash
 git clone git@github.com:JBRICENO92/portal.git
 cd portal
@@ -25,13 +26,13 @@ chmod +x setup.sh
 sudo ./setup.sh
 ```
 
-El script se encargará de instalar Caddy desde su repositorio oficial, copiar la web a `/var/www/portal`, aplicar el `Caddyfile` y levantar el servicio en systemd.
+The script automatically imports the official Caddy GPG keyring, installs Caddy, deploys static web files to `/var/www/portal`, applies `Caddyfile`, and starts the systemd service.
 
 ---
 
-### Opción Manual
+### Manual Setup
 
-1. **Instalar el repositorio oficial de Caddy:**
+1. **Install Caddy from the official Debian/Ubuntu repository:**
    ```bash
    sudo apt-get install -y debian-keyring debian-archive-keyring apt-transport-https curl
    curl -fsSL 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
@@ -39,7 +40,7 @@ El script se encargará de instalar Caddy desde su repositorio oficial, copiar l
    sudo apt-get update && sudo apt-get install -y caddy
    ```
 
-2. **Copiar los archivos estáticos a `/var/www/portal`:**
+2. **Deploy static dashboard files:**
    ```bash
    sudo mkdir -p /var/www/portal
    sudo cp -r site/* /var/www/portal/
@@ -47,7 +48,7 @@ El script se encargará de instalar Caddy desde su repositorio oficial, copiar l
    sudo chmod -R 755 /var/www/portal
    ```
 
-3. **Copiar la configuración de Caddy:**
+3. **Deploy Caddy configuration:**
    ```bash
    sudo cp Caddyfile /etc/caddy/Caddyfile
    sudo systemctl reload caddy
@@ -55,42 +56,45 @@ El script se encargará de instalar Caddy desde su repositorio oficial, copiar l
 
 ---
 
-## ➕ ¿Cómo agregar un nuevo proyecto al Portal?
+## ➕ How to Register a New Application
 
-Agregar una nueva aplicación (por ejemplo, un proyecto en el puerto 5003) se hace en **dos pasos sencillos**:
+Adding a new local service (for example, a tool running on port 5003) takes **two simple steps**:
 
-### 1. Registrar la tarjeta en `site/apps.json`
-Añade una nueva entrada en el archivo:
+### 1. Add the Card Entry to `site/apps.json`
+Add a new object in the `apps.json` array:
 ```json
 {
-  "id": "mi-proyecto",
-  "nombre": "Mi Proyecto Nuevo",
-  "descripcion": "Descripción breve de la herramienta.",
-  "ruta": "/nuevo/",
+  "id": "new-app",
+  "nombre": "New Tool Name",
+  "descripcion": "Brief summary of what this tool does.",
+  "ruta": "/newapp/",
+  "badge": "Active",
   "icono": "🚀",
   "puerto": 5003,
-  "health": "/nuevo/health"
+  "health": "/newapp/health"
 }
 ```
 
-### 2. Añadir la ruta en `Caddyfile`
-Agrega un bloque de reverse proxy dentro de `Caddyfile`:
+### 2. Add the Route Block to `Caddyfile`
+Add a reverse proxy handle block before the fallback static file server:
 ```caddy
-handle_path /nuevo/* {
+handle_path /newapp/* {
     reverse_proxy 127.0.0.1:5003 {
-        header_up X-Forwarded-Prefix /nuevo
+        header_up X-Forwarded-Prefix /newapp
         header_up X-Forwarded-Proto https
     }
 }
 ```
 
-Luego recarga Caddy con:
+Apply the changes immediately:
 ```bash
-sudo systemctl reload caddy
+sudo cp Caddyfile /etc/caddy/Caddyfile && sudo systemctl reload caddy
 ```
 
 ---
 
-## 🔒 Notas sobre el Certificado HTTPS (`tls internal`)
+## 🔒 Internal HTTPS Certificate Notes (`tls internal`)
 
-El `Caddyfile` utiliza `tls internal`, lo que significa que Caddy actúa como su propia Autoridad Certificadora local para emitir certificados HTTPS dentro de tu red local. Al entrar por primera vez desde un navegador nuevo, pulsa **Configuración Avanzada → Continuar**.
+The `Caddyfile` is configured with `tls internal`. Caddy acts as its own local Certificate Authority (CA) to automatically issue trusted HTTPS certificates within your local network without requiring public domain registration.
+
+When opening the dashboard for the first time on a new client browser, accept the local self-signed certificate (*Advanced → Proceed to site*).
